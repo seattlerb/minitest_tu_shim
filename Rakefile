@@ -13,6 +13,8 @@ Hoe.new('minitest_tu_shim', Test::Unit::TestCase::VERSION) do |shim|
   shim.rubyforge_name = "bfts"
 
   shim.developer('Ryan Davis', 'ryand-ruby@zenspider.com')
+
+  shim.extra_deps << 'minitest'
 end
 
 # vim: syntax=Ruby
