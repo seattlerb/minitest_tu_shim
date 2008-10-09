@@ -12,7 +12,7 @@ module Test::Unit # was ::Mini::Test, but rails' horrid code forced my hand
 
   class TestCase < ::MiniTest::Unit::TestCase
 
-    VERSION = ::MiniTest::Unit::VERSION
+    VERSION = '1.3.0'
 
     tu_deprecate :method_name, :name # 2009-06-01
 
