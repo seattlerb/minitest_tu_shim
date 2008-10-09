@@ -7,9 +7,9 @@ require 'hoe'
 
 Hoe.add_include_dirs "../../minitest/dev/lib", "lib"
 
-require 'minitest/unit'
+require 'test/unit/testcase'
 
-Hoe.new('minitest_tu_shim', MiniTest::Unit::VERSION) do |shim|
+Hoe.new('minitest_tu_shim', Test::Unit::TestCase::VERSION) do |shim|
   shim.rubyforge_name = "bfts"
 
   shim.developer('Ryan Davis', 'ryand-ruby@zenspider.com')

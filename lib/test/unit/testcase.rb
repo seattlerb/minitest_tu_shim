@@ -1,9 +1,6 @@
 require 'minitest/unit'
 require 'test/unit/deprecate'
 
-warn "require 'test/unit/testcase' has been deprecated" unless
-  caller.first =~ /test.unit.rb/
-
 module Test; end
 module Test::Unit # was ::Mini::Test, but rails' horrid code forced my hand
   if defined? TestCase then
@@ -14,6 +11,9 @@ module Test::Unit # was ::Mini::Test, but rails' horrid code forced my hand
   AssertionFailedError = ::MiniTest::Assertion
 
   class TestCase < ::MiniTest::Unit::TestCase
+
+    VERSION = ::MiniTest::Unit::VERSION
+
     tu_deprecate :method_name, :name # 2009-06-01
 
     def self.test_order              # 2009-06-01
