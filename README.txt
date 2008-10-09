@@ -1,35 +1,32 @@
-= mini/{test,spec,mock}
+= minitest_tu_shim
 
 * http://rubyforge.org/projects/bfts
 
 == DESCRIPTION:
 
-mini/test is a completely minimial drop-in replacement for ruby's
-test/unit. This is meant to be clean and easy to use both as a regular
-test writer and for language implementors that need a minimal set of
-methods to bootstrap a working unit test suite.
-
-mini/spec is a functionally complete spec engine.
-
-mini/mock, by Steven Baker, is a beautifully tiny mock object framework.
+minitest_te_shim bridges the gap between the small and fast minitest
+and ruby's huge and slow test/unit.
 
 == FEATURES/PROBLEMS:
 
-* Contains mini/test - a simple and clean test system (301 lines!).
-* Contains mini/spec - a simple and clean spec system (52 lines!).
-* Contains mini/mock - a simple and clean mock system (35 lines!).
 * Fully test/unit compatible assertions.
 * Allows test/unit to be required, firing up an autorunner.
-* Incredibly small and fast runner, but no bells and whistles.
-* Incompatible at the runner level.
+* Incompatible at the runner level. Does not replicate test/unit's internals.
+
+== HOW TO USE:
+
++ sudo gem install minitest_tu_shim
++ sudo use_minitest yes
++ there is no step 3.
 
 == REQUIREMENTS:
 
++ minitest
 + Ruby 1.8, maybe even 1.6 or lower. No magic is involved.
 
 == INSTALL:
 
-+ sudo gem install miniunit
++ sudo gem install minitest_tu_shim
 
 == LICENSE:
 
