@@ -1,13 +1,47 @@
 # -*- ruby -*-
 
+require 'autotest/restart'
+
 Autotest.add_hook :initialize do |at|
   at.extra_class_map["MiniSpec"]             = "test/test_mini_spec.rb"
   at.extra_class_map["TestMiniTestTestCase"] = "test/test_mini_test.rb"
+
+  at.libs << ":../../minitest/dev/lib"
 
   at.add_exception 'coverage.info'
   at.add_exception 'coverage'
 end
 
-require 'autotest/rcov'
-Autotest::RCov.command = 'rcov_info'
+# require 'autotest/rcov'
+# Autotest::RCov.command = 'rcov_info'
 
+
+
+# require 'autotest/restart'
+
+# Autotest.add_hook :initialize do |at|
+#   at.extra_files << "../../ParseTree/dev/test/pt_testcase.rb"
+#   at.libs << ":../../ParseTree/dev/lib:../../ParseTree/dev/test:../../sexp_processor/dev/lib"
+#   at.add_exception 'unit'
+#   at.add_exception 'coverage'
+#   at.add_exception '.diff'
+#   at.add_exception 'coverage.info'
+
+#   at.unit_diff = "unit_diff -u -b"
+
+#   at.add_mapping(/^lib\/.*\.y$/) do |f, _|
+#     at.files_matching %r%^test/.*#{File.basename(f, '.y').gsub '_', '_?'}.rb$%
+#   end
+
+#   at.add_mapping(/pt_testcase.rb/) do |f, _|
+#     at.files_matching(/test_.*rb$/)
+#   end
+
+#   %w(TestEnvironment TestStackState).each do |klass|
+#     at.extra_class_map[klass] = "test/test_ruby_parser_extras.rb"
+#   end
+
+#   %w(TestRubyParser TestParseTree).each do |klass| # HACK
+#     at.extra_class_map[klass] = "test/test_ruby_parser.rb"
+#   end
+# end

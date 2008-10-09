@@ -1,4 +1,4 @@
-require 'mini/test'
+require 'minitest/unit'
 require 'test/unit/deprecate'
 
 warn "require 'test/unit/testcase' has been deprecated" unless
@@ -11,9 +11,9 @@ module Test::Unit # was ::Mini::Test, but rails' horrid code forced my hand
     remove_const :TestCase
   end
 
-  AssertionFailedError = ::Mini::Assertion
+  AssertionFailedError = ::MiniTest::Assertion
 
-  class TestCase < ::Mini::Test::TestCase
+  class TestCase < ::MiniTest::Unit::TestCase
     tu_deprecate :method_name, :name # 2009-06-01
 
     def self.test_order              # 2009-06-01

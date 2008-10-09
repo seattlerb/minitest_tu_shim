@@ -9,11 +9,11 @@ minidir = File.join(projdir, "lib")
 
 case use_miniunit
 when /^y/ then
-  File.symlink File.join(minidir, "mini"), File.join(sitelib, "mini")
+  File.symlink File.join(minidir, "minitest"), File.join(sitelib, "minitest")
   File.symlink File.join(minidir, "test"), File.join(sitelib, "test")
   puts "Added links to #{sitelib}"
 when /^n/ then
-  File.unlink File.join(sitelib, "mini")
+  File.unlink File.join(sitelib, "minitest")
   File.unlink File.join(sitelib, "test")
   puts "Removed links from #{sitelib}"
 else
