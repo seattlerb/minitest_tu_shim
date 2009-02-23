@@ -4,7 +4,7 @@
 
 == DESCRIPTION:
 
-minitest_te_shim bridges the gap between the small and fast minitest
+minitest_tu_shim bridges the gap between the small and fast minitest
 and ruby's huge and slow test/unit.
 
 == FEATURES/PROBLEMS:
