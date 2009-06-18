@@ -9,12 +9,14 @@ Hoe.add_include_dirs "../../minitest/dev/lib", "lib"
 
 require 'test/unit/testcase'
 
-Hoe.new('minitest_tu_shim', Test::Unit::TestCase::VERSION) do |shim|
-  shim.rubyforge_name = "bfts"
+Hoe.plugin :perforce, :email # can't do minitest, so no seattlerb wrapper
 
-  shim.developer('Ryan Davis', 'ryand-ruby@zenspider.com')
+Hoe.spec 'minitest_tu_shim' do
+  developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
 
-  shim.extra_deps << 'minitest'
+  self.rubyforge_name = "bfts"
+
+  extra_deps << 'minitest'
 end
 
-# vim: syntax=Ruby
+# vim: syntax=ruby

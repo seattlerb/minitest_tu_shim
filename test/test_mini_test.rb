@@ -420,7 +420,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_includes_triggered
-    @assertion_count = 4
+    @assertion_count = 3
 
     e = @tc.assert_raises MiniTest::Assertion do
       @tc.assert_includes [true], false
@@ -457,7 +457,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
 
   def test_assert_match_triggered
     @assertion_count = 2
-    util_assert_triggered 'Expected /\d+/ to match "blah blah blah".' do
+    util_assert_triggered 'Expected "blah blah blah" to match /\d+/.' do
       @tc.assert_match "blah blah blah", /\d+/
     end
   end
@@ -483,16 +483,12 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_raises
-    @assertion_count = 2
-
     @tc.assert_raises RuntimeError do
       raise "blah"
     end
   end
 
   def test_assert_raises_triggered_different
-    @assertion_count = 2
-
     e = assert_raises MiniTest::Assertion do
       @tc.assert_raises RuntimeError do
         raise SyntaxError, "icky"
@@ -727,7 +723,7 @@ Expected [RuntimeError] to include SyntaxError."
   end
 
   def test_refute_includes_triggered
-    @assertion_count = 4
+    @assertion_count = 3
 
     e = @tc.assert_raises MiniTest::Assertion do
       @tc.refute_includes [true], true
@@ -758,11 +754,15 @@ Expected [RuntimeError] to include SyntaxError."
   end
 
   def test_refute_match
+    @assertion_count = 2
+
     @tc.refute_match "blah blah blah", /\d+/
   end
 
   def test_refute_match_triggered
-    util_assert_triggered 'Expected /\w+/ to not match "blah blah blah".' do
+    @assertion_count = 2
+
+    util_assert_triggered 'Expected "blah blah blah" to not match /\w+/.' do
       @tc.refute_match "blah blah blah", /\w+/
     end
   end
