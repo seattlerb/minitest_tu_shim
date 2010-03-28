@@ -16,7 +16,7 @@ Hoe.spec 'minitest_tu_shim' do
 
   self.rubyforge_name = "bfts"
 
-  extra_deps << 'minitest'
+  extra_deps << ['minitest', ">= #{MiniTest::Unit::VERSION}"]
 end
 
 # vim: syntax=ruby

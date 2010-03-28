@@ -1,3 +1,10 @@
+=== 1.3.2 / 2010-03-27
+
+* 2 bug fixes:
+
+  * Fixed failed tests for new assert_same output
+  * Fixed tests for changes to minitest output
+
 === 1.3.1 / 2009-06-23
 
 * 1 minor enhancement:
