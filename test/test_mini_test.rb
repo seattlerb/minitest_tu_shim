@@ -103,7 +103,7 @@ class TestMiniTest < MiniTest::Unit::TestCase
   end
 
   def test_class_run_test_suites
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
       def test_something
         assert true
       end
@@ -115,7 +115,11 @@ class TestMiniTest < MiniTest::Unit::TestCase
   end
 
   def test_run_failing # TODO: add error test
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
+      def self.test_order
+        :alpha
+      end
+
       def test_something
         assert true
       end
@@ -139,12 +143,18 @@ test_failure(ATestCase) [FILE:LINE]:
 Failed assertion, no message given.
 
 2 tests, 2 assertions, 1 failures, 0 errors, 0 skips
+
+Test run options:
 "
     util_assert_report expected
   end
 
   def test_run_error
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
+      def self.test_order
+        :alpha
+      end
+
       def test_something
         assert true
       end
@@ -169,12 +179,14 @@ RuntimeError: unhandled exception
     FILE:LINE:in `test_error'
 
 2 tests, 1 assertions, 0 failures, 1 errors, 0 skips
+
+Test run options:
 "
     util_assert_report expected
   end
 
   def test_run_error_teardown
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
       def test_something
         assert true
       end
@@ -199,12 +211,18 @@ RuntimeError: unhandled exception
     FILE:LINE:in `teardown'
 
 1 tests, 1 assertions, 0 failures, 1 errors, 0 skips
+
+Test run options:
 "
     util_assert_report expected
   end
 
   def test_run_skip
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
+      def self.test_order
+        :alpha
+      end
+
       def test_something
         assert true
       end
@@ -228,6 +246,8 @@ test_skip(ATestCase) [FILE:LINE]:
 not yet
 
 2 tests, 1 assertions, 0 failures, 0 errors, 1 skips
+
+Test run options:
 "
     util_assert_report expected
   end
@@ -239,15 +259,22 @@ Started
 Finished in 0.00
 
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+
+Test run options:
 "
     output = @output.string.sub(/Finished in .*/, "Finished in 0.00")
     output.sub!(/Loaded suite .*/, 'Loaded suite blah')
     output.sub!(/[\w\/\.]+:\d+/, 'FILE:LINE')
+    output.gsub!(/(Test run options:).+/, '\1')
     assert_equal(expected, output)
   end
 
   def test_run_failing_filtered
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
+      def self.test_order
+        :alpha
+      end
+
       def test_something
         assert true
       end
@@ -265,7 +292,7 @@ Finished in 0.00
   end
 
   def test_run_passing
-    tc = Class.new(MiniTest::Unit::TestCase) do
+    tc = Class.new MiniTest::Unit::TestCase do
       def test_something
         assert true
       end
@@ -297,18 +324,18 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   def test_class_inherited
     @assertion_count = 0
 
-    Object.const_set(:ATestCase, Class.new(MiniTest::Unit::TestCase))
+    testcase = Class.new MiniTest::Unit::TestCase
 
-    assert_equal [ATestCase], MiniTest::Unit::TestCase.test_suites
+    assert_equal [testcase], MiniTest::Unit::TestCase.test_suites
   end
 
   def test_class_test_suites
     @assertion_count = 0
 
-    Object.const_set(:ATestCase, Class.new(MiniTest::Unit::TestCase))
+    testcase = Class.new MiniTest::Unit::TestCase
 
     assert_equal 1, MiniTest::Unit::TestCase.test_suites.size
-    assert_equal [ATestCase], MiniTest::Unit::TestCase.test_suites
+    assert_equal [testcase], MiniTest::Unit::TestCase.test_suites
   end
 
   def test_class_asserts_match_refutes
@@ -623,16 +650,11 @@ Expected [RuntimeError] to include SyntaxError."
   def test_test_methods_sorted
     @assertion_count = 0
 
-    sample_test_case = Class.new(MiniTest::Unit::TestCase)
-
-    class << sample_test_case
-      def test_order; :sorted end
-    end
-
-    sample_test_case.instance_eval do
-      define_method :test_test3 do assert "does not matter" end
-      define_method :test_test2 do assert "does not matter" end
-      define_method :test_test1 do assert "does not matter" end
+    sample_test_case = Class.new MiniTest::Unit::TestCase do
+      def self.test_order; :sorted; end
+      def test_test3; assert "does not matter" end
+      def test_test2; assert "does not matter" end
+      def test_test1; assert "does not matter" end
     end
 
     expected = %w(test_test1 test_test2 test_test3)
@@ -642,16 +664,11 @@ Expected [RuntimeError] to include SyntaxError."
   def test_test_methods_random
     @assertion_count = 0
 
-    sample_test_case = Class.new(MiniTest::Unit::TestCase)
-
-    class << sample_test_case
-      def test_order; :random end
-    end
-
-    sample_test_case.instance_eval do
-      define_method :test_test1 do assert "does not matter" end
-      define_method :test_test2 do assert "does not matter" end
-      define_method :test_test3 do assert "does not matter" end
+    sample_test_case = Class.new MiniTest::Unit::TestCase do
+      def self.test_order; :random end
+      def test_test1; assert "does not matter" end
+      def test_test2; assert "does not matter" end
+      def test_test3; assert "does not matter" end
     end
 
     srand 42
@@ -803,7 +820,7 @@ Expected [RuntimeError] to include SyntaxError."
 
   # TODO: "with id <id>" crap from assertions.rb
   def test_refute_same_triggered
-    util_assert_triggered 'Expected 1 to not be the same as 1.' do
+    util_assert_triggered 'Expected 1 (oid=N) to not be the same as 1 (oid=N).' do
       @tc.refute_same 1, 1
     end
   end
@@ -823,6 +840,7 @@ Expected [RuntimeError] to include SyntaxError."
 
     msg = e.message.sub(/(---Backtrace---).*/m, '\1')
     msg.gsub!(/\(oid=[-0-9]+\)/, '(oid=N)')
+    msg.gsub!(/(Test run options:).+/, '\1')
 
     assert_equal expected, msg
   end
