@@ -133,7 +133,9 @@ class TestMiniTest < MiniTest::Unit::TestCase
 
     @tu.run
 
-    expected = "Loaded suite blah
+    expected = "Test run options:
+
+Loaded suite blah
 Started
 F.
 Finished in 0.00
@@ -168,7 +170,9 @@ Test run options:
 
     @tu.run
 
-    expected = "Loaded suite blah
+    expected = "Test run options:
+
+Loaded suite blah
 Started
 E.
 Finished in 0.00
@@ -200,7 +204,9 @@ Test run options:
 
     @tu.run
 
-    expected = "Loaded suite blah
+    expected = "Test run options:
+
+Loaded suite blah
 Started
 E
 Finished in 0.00
@@ -236,7 +242,9 @@ Test run options:
 
     @tu.run
 
-    expected = "Loaded suite blah
+    expected = "Test run options:
+
+Loaded suite blah
 Started
 S.
 Finished in 0.00
@@ -253,7 +261,9 @@ Test run options:
   end
 
   def util_assert_report expected = nil
-    expected ||= "Loaded suite blah
+    expected ||= "Test run options:
+
+Loaded suite blah
 Started
 .
 Finished in 0.00
@@ -344,9 +354,11 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
     methods = MiniTest::Assertions.public_instance_methods
     methods.map! { |m| m.to_s } if Symbol === methods.first
 
-    ignores = %w(assert_block assert_no_match assert_not_equal assert_not_nil
-                 assert_not_same assert_nothing_thrown assert_raise
-                 assert_nothing_raised assert_raises assert_throws assert_send)
+    ignores = %w(assert_block assert_no_match assert_not_equal
+                 assert_not_nil assert_not_same assert_nothing_thrown
+                 assert_output assert_raise assert_nothing_raised
+                 assert_raises assert_throws assert_send
+                 assert_silent)
     asserts = methods.grep(/^assert/).sort - ignores
     refutes = methods.grep(/^refute/).sort - ignores
 
