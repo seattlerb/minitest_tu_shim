@@ -11,7 +11,6 @@ class TestMiniTest < MiniTest::Unit::TestCase
     @tu = MiniTest::Unit.new
     @output = StringIO.new("")
     MiniTest::Unit.output = @output
-    assert_equal [0, 0], @tu.run_test_suites
   end
 
   def teardown
@@ -109,9 +108,7 @@ class TestMiniTest < MiniTest::Unit::TestCase
       end
     end
 
-    Object.const_set(:ATestCase, tc)
-
-    assert_equal [1, 1], @tu.run_test_suites
+    assert_equal [1, 1], @tu._run_suite(tc, "test")
   end
 
   def test_run_failing # TODO: add error test
@@ -133,20 +130,19 @@ class TestMiniTest < MiniTest::Unit::TestCase
 
     @tu.run
 
-    expected = "Test run options:
+    expected = "Run options:
 
-Loaded suite blah
-Started
+# Running tests:
+
 F.
-Finished in 0.00
+
+Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
   1) Failure:
 test_failure(ATestCase) [FILE:LINE]:
 Failed assertion, no message given.
 
 2 tests, 2 assertions, 1 failures, 0 errors, 0 skips
-
-Test run options:
 "
     util_assert_report expected
   end
@@ -170,12 +166,13 @@ Test run options:
 
     @tu.run
 
-    expected = "Test run options:
+    expected = "Run options:
 
-Loaded suite blah
-Started
+# Running tests:
+
 E.
-Finished in 0.00
+
+Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
   1) Error:
 test_error(ATestCase):
@@ -183,8 +180,6 @@ RuntimeError: unhandled exception
     FILE:LINE:in `test_error'
 
 2 tests, 1 assertions, 0 failures, 1 errors, 0 skips
-
-Test run options:
 "
     util_assert_report expected
   end
@@ -204,12 +199,13 @@ Test run options:
 
     @tu.run
 
-    expected = "Test run options:
+    expected = "Run options:
 
-Loaded suite blah
-Started
+# Running tests:
+
 E
-Finished in 0.00
+
+Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
   1) Error:
 test_something(ATestCase):
@@ -217,8 +213,6 @@ RuntimeError: unhandled exception
     FILE:LINE:in `teardown'
 
 1 tests, 1 assertions, 0 failures, 1 errors, 0 skips
-
-Test run options:
 "
     util_assert_report expected
   end
@@ -242,40 +236,38 @@ Test run options:
 
     @tu.run
 
-    expected = "Test run options:
+    expected = "Run options:
 
-Loaded suite blah
-Started
+# Running tests:
+
 S.
-Finished in 0.00
+
+Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
   1) Skipped:
 test_skip(ATestCase) [FILE:LINE]:
 not yet
 
 2 tests, 1 assertions, 0 failures, 0 errors, 1 skips
-
-Test run options:
 "
     util_assert_report expected
   end
 
   def util_assert_report expected = nil
-    expected ||= "Test run options:
+    expected ||= "Run options:
 
-Loaded suite blah
-Started
+# Running tests:
+
 .
-Finished in 0.00
+
+Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
 1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
-
-Test run options:
 "
-    output = @output.string.sub(/Finished in .*/, "Finished in 0.00")
+    output = @output.string.gsub(/\d+\.\d+/, "0.00")
     output.sub!(/Loaded suite .*/, 'Loaded suite blah')
     output.sub!(/[\w\/\.]+:\d+/, 'FILE:LINE')
-    output.gsub!(/(Test run options:).+/, '\1')
+    output.gsub!(/(Run options:).+/, '\1')
     assert_equal(expected, output)
   end
 
@@ -852,7 +844,7 @@ Expected [RuntimeError] to include SyntaxError."
 
     msg = e.message.sub(/(---Backtrace---).*/m, '\1')
     msg.gsub!(/\(oid=[-0-9]+\)/, '(oid=N)')
-    msg.gsub!(/(Test run options:).+/, '\1')
+    msg.gsub!(/(Run options:).+/, '\1')
 
     assert_equal expected, msg
   end
