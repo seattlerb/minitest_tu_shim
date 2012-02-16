@@ -1,15 +1,13 @@
 require 'stringio'
-require 'minitest/unit'
-
-MiniTest::Unit.autorun
+require 'minitest/autorun'
 
 class TestMiniTest < MiniTest::Unit::TestCase
-
   def setup
     srand 42
     MiniTest::Unit::TestCase.reset
     @tu = MiniTest::Unit.new
     @output = StringIO.new("")
+    MiniTest::Unit.runner = nil # protect the outer runner from the inner tests
     MiniTest::Unit.output = @output
   end
 
@@ -25,26 +23,6 @@ class TestMiniTest < MiniTest::Unit::TestCase
                "./lib/mini/test.rb:158:in `run_test_suites'",
                "./lib/mini/test.rb:139:in `run'",
                "./lib/mini/test.rb:106:in `run'"]
-
-#   def test_filter_backtrace
-#     # this is a semi-lame mix of relative paths.
-#     # I cheated by making the autotest parts not have ./
-#     bt = (["lib/autotest.rb:571:in `add_exception'",
-#            "test/test_autotest.rb:62:in `test_add_exception'",
-#            "./lib/mini/test.rb:165:in `__send__'"] +
-#           BT_MIDDLE +
-#           ["./lib/mini/test.rb:29",
-#            "test/test_autotest.rb:422"])
-#     bt = util_expand_bt bt
-
-#     ex = ["lib/autotest.rb:571:in `add_exception'",
-#           "test/test_autotest.rb:62:in `test_add_exception'"]
-#     ex = util_expand_bt ex
-
-#     fu = MiniTest::filter_backtrace(bt)
-
-#     assert_equal ex, fu
-#   end
 
   def util_expand_bt bt
     if RUBY_VERSION =~ /^1\.9/ then
@@ -62,19 +40,6 @@ class TestMiniTest < MiniTest::Unit::TestCase
     fu = MiniTest::filter_backtrace(bt)
     assert_equal ex, fu
   end
-
-#   def test_filter_backtrace_unit_starts
-#     bt = (["./lib/mini/test.rb:165:in `__send__'"] +
-#           BT_MIDDLE +
-#           ["./lib/mini/test.rb:29",
-#            "-e:1"])
-
-#     bt = util_expand_bt bt
-
-#     ex = ["-e:1"]
-#     fu = MiniTest::filter_backtrace(bt)
-#     assert_equal ex, fu
-#   end
 
   def test_class_puke_with_assertion_failed
     exception = MiniTest::Assertion.new "Oh no!"
@@ -234,13 +199,15 @@ RuntimeError: unhandled exception
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run
+    @tu.run %w[--seed 42 --verbose]
 
     expected = "Run options:
 
 # Running tests:
 
-S.
+ATestCase#test_skip = 0.00 s = S
+ATestCase#test_something = 0.00 s = .
+
 
 Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
@@ -409,7 +376,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_equal_different
-    util_assert_triggered "Expected 1, not 2." do
+    util_assert_triggered "Expected: 1\n  Actual: 2" do
       @tc.assert_equal 1, 2
     end
   end
@@ -419,7 +386,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_in_delta_triggered
-    util_assert_triggered 'Expected 0.0 - 0.001 (0.001) to be < 1.0e-06.' do
+    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to be < 1.0e-06.' do
       @tc.assert_in_delta 0.0, 1.0 / 1000, 0.000001
     end
   end
@@ -439,7 +406,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_in_epsilon_triggered
-    util_assert_triggered 'Expected 10000 - 9990 (10) to be < 9.99.' do
+    util_assert_triggered 'Expected |10000 - 9990| (10) to be < 9.99.' do
       @tc.assert_in_epsilon 10000, 9990
     end
   end
@@ -526,15 +493,18 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
       end
     end
 
-    expected = "<[RuntimeError]> exception expected, not
+    expected = "[RuntimeError] exception expected, not
 Class: <SyntaxError>
 Message: <\"icky\">
 ---Backtrace---
 FILE:LINE:in `test_assert_raises_triggered_different'
----------------.
-Expected [RuntimeError] to include SyntaxError."
+---------------"
 
-    assert_equal expected, expected.gsub(/[\w\/\.]+:\d+/, 'FILE:LINE')
+    actual = e.message.
+      gsub(/[\w\/\.]+:\d+/, 'FILE:LINE').
+      gsub(/block .\d+ levels. in /, '')
+
+    assert_equal expected, actual
   end
 
   def test_assert_raises_triggered_none
@@ -721,7 +691,7 @@ Expected [RuntimeError] to include SyntaxError."
   end
 
   def test_refute_in_delta_triggered
-    util_assert_triggered 'Expected 0.0 - 0.001 (0.001) to not be < 0.1.' do
+    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to not be < 0.1.' do
       @tc.refute_in_delta 0.0, 1.0 / 1000, 0.1
     end
   end
@@ -731,7 +701,7 @@ Expected [RuntimeError] to include SyntaxError."
   end
 
   def test_refute_in_epsilon_triggered
-    util_assert_triggered 'Expected 10000 - 9991 (9) to not be < 10.0.' do
+    util_assert_triggered 'Expected |10000 - 9991| (9) to not be < 10.0.' do
       @tc.refute_in_epsilon 10000, 9991
       fail
     end

@@ -15,7 +15,7 @@ class Module # define deprecation api
   def tu_deprecate old, new
     class_eval <<-EOM
       def #{old} *args, &block
-        cls, clr = self.class, caller.first
+        clr = caller.first
         self.class.tu_deprecation_warning #{old.inspect}, #{new.inspect}, clr
         #{new}(*args, &block)
       end
