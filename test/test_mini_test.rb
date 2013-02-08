@@ -313,7 +313,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
     methods = MiniTest::Assertions.public_instance_methods
     methods.map! { |m| m.to_s } if Symbol === methods.first
 
-    ignores = %w(assert_block assert_no_match assert_not_equal
+    ignores = %w(assert_no_match assert_not_equal
                  assert_not_nil assert_not_same assert_nothing_thrown
                  assert_output assert_raise assert_nothing_raised
                  assert_raises assert_throws assert_send
@@ -340,20 +340,6 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   def test_assert__triggered_message
     util_assert_triggered @zomg do
       @tc.assert false, @zomg
-    end
-  end
-
-  def test_assert_block
-    @tc.assert_block do
-      true
-    end
-  end
-
-  def test_assert_block_triggered
-    util_assert_triggered 'Expected block to return true value.' do
-      @tc.assert_block do
-        false
-      end
     end
   end
 
@@ -450,13 +436,13 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
 
   def test_assert_match
     @assertion_count = 2
-    @tc.assert_match "blah blah blah", /\w+/
+    @tc.assert_match(/\w+/, "blah blah blah")
   end
 
   def test_assert_match_triggered
     @assertion_count = 2
-    util_assert_triggered 'Expected "blah blah blah" to match /\d+/.' do
-      @tc.assert_match "blah blah blah", /\d+/
+    util_assert_triggered 'Expected /\d+/ to match "blah blah blah".' do
+      @tc.assert_match(/\d+/, "blah blah blah")
     end
   end
 
@@ -747,14 +733,14 @@ FILE:LINE:in `test_assert_raises_triggered_different'
   def test_refute_match
     @assertion_count = 2
 
-    @tc.refute_match "blah blah blah", /\d+/
+    @tc.refute_match(/\d+/, "blah blah blah")
   end
 
   def test_refute_match_triggered
     @assertion_count = 2
 
-    util_assert_triggered 'Expected "blah blah blah" to not match /\w+/.' do
-      @tc.refute_match "blah blah blah", /\w+/
+    util_assert_triggered 'Expected /\w+/ to not match "blah blah blah".' do
+      @tc.refute_match(/\w+/, "blah blah blah")
     end
   end
 
