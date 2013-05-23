@@ -1,5 +1,6 @@
 require 'stringio'
 require 'minitest/autorun'
+require 'test/unit'
 
 class TestMiniTest < Minitest::Test
   def setup
