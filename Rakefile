@@ -1,22 +1,19 @@
 # -*- ruby -*-
 
-$TESTING_MINIUNIT = true
+# $TESTING_MINIUNIT = true
 
-require 'rubygems'
-require 'hoe'
-
-Hoe.add_include_dirs "../../minitest/dev/lib", "lib"
-
-require 'test/unit/testcase'
+require "rubygems"
+require "hoe"
 
 Hoe.plugin :perforce, :email # can't do minitest, so no seattlerb wrapper
+Hoe.plugin :isolate
 
-Hoe.spec 'minitest_tu_shim' do
-  developer 'Ryan Davis', 'ryand-ruby@zenspider.com'
+Hoe.add_include_dirs "../../minitest/dev/lib"
 
-  self.rubyforge_name = "bfts"
+Hoe.spec "minitest_tu_shim" do
+  developer "Ryan Davis", "ryand-ruby@zenspider.com"
 
-  extra_deps << ['minitest', ">= #{MiniTest::Unit::VERSION}"]
+  dependency "minitest", "< 5"
 end
 
 # vim: syntax=ruby

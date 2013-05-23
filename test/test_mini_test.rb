@@ -1,18 +1,16 @@
 require 'stringio'
 require 'minitest/autorun'
 
-class TestMiniTest < MiniTest::Unit::TestCase
+class TestMiniTest < Minitest::Test
   def setup
     srand 42
     MiniTest::Unit::TestCase.reset
     @tu = MiniTest::Unit.new
     @output = StringIO.new("")
-    MiniTest::Unit.runner = nil # protect the outer runner from the inner tests
-    MiniTest::Unit.output = @output
   end
 
   def teardown
-    MiniTest::Unit.output = $stdout
+    # MiniTest::Unit.output = $stdout
     Object.send :remove_const, :ATestCase if defined? ATestCase
   end
 
@@ -41,43 +39,27 @@ class TestMiniTest < MiniTest::Unit::TestCase
     assert_equal ex, fu
   end
 
-  def test_class_puke_with_assertion_failed
-    exception = MiniTest::Assertion.new "Oh no!"
-    exception.set_backtrace ["unhappy"]
-    assert_equal 'F', @tu.puke('SomeClass', 'method_name', exception)
-    assert_equal 1, @tu.failures
-    assert_match(/^Failure.*Oh no!/m, @tu.report.first)
-  end
+  attr_accessor :reporter
 
-  def test_class_puke_with_failure_and_flunk_in_backtrace
-    exception = begin
-                  MiniTest::Unit::TestCase.new('fake tc').flunk
-                rescue MiniTest::Assertion => failure
-                  failure
-                end
-    assert_equal 'F', @tu.puke('SomeClass', 'method_name', exception)
-    refute @tu.report.any?{|line| line =~ /in .flunk/}
-  end
+  def run_tu_with_fresh_reporter flags = %w[--seed 42]
+    options = Minitest.process_args flags
 
-  def test_class_puke_with_non_failure_exception
-    exception = Exception.new("Oh no again!")
-    assert_equal 'E', @tu.puke('SomeClass', 'method_name', exception)
-    assert_equal 1, @tu.errors
-    assert_match(/^Exception.*Oh no again!/m, @tu.report.first)
-  end
+    @output = StringIO.new("")
+    self.reporter = Minitest::Reporter.new @output, options
+    reporter.start
 
-  def test_class_run_test_suites
-    tc = Class.new MiniTest::Unit::TestCase do
-      def test_something
-        assert true
-      end
+    @tus ||= [@tu]
+    @tus.each do |tu|
+      Minitest::Runnable.runnables.delete tu
+
+      tu.run reporter, options
     end
 
-    assert_equal [1, 1], @tu._run_suite(tc, "test")
+    reporter.report
   end
 
   def test_run_failing # TODO: add error test
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def self.test_order
         :alpha
       end
@@ -93,27 +75,28 @@ class TestMiniTest < MiniTest::Unit::TestCase
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run
+    @tu = tc
+    run_tu_with_fresh_reporter
 
     expected = "Run options:
 
-# Running tests:
+# Running:
 
 F.
 
-Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
+Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
   1) Failure:
-test_failure(ATestCase) [FILE:LINE]:
+ATestCase#test_failure [FILE:LINE]:
 Failed assertion, no message given.
 
-2 tests, 2 assertions, 1 failures, 0 errors, 0 skips
+2 runs, 2 assertions, 1 failures, 0 errors, 0 skips
 "
     util_assert_report expected
   end
 
   def test_run_error
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def self.test_order
         :alpha
       end
@@ -129,28 +112,29 @@ Failed assertion, no message given.
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run
+    @tu = tc
+    run_tu_with_fresh_reporter
 
     expected = "Run options:
 
-# Running tests:
+# Running:
 
 E.
 
-Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
+Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
   1) Error:
-test_error(ATestCase):
+ATestCase#test_error:
 RuntimeError: unhandled exception
     FILE:LINE:in `test_error'
 
-2 tests, 1 assertions, 0 failures, 1 errors, 0 skips
+2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 "
     util_assert_report expected
   end
 
   def test_run_error_teardown
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def test_something
         assert true
       end
@@ -162,28 +146,29 @@ RuntimeError: unhandled exception
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run
+    @tu = tc
+    run_tu_with_fresh_reporter
 
     expected = "Run options:
 
-# Running tests:
+# Running:
 
 E
 
-Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
+Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
   1) Error:
-test_something(ATestCase):
+ATestCase#test_something:
 RuntimeError: unhandled exception
     FILE:LINE:in `teardown'
 
-1 tests, 1 assertions, 0 failures, 1 errors, 0 skips
+1 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 "
     util_assert_report expected
   end
 
   def test_run_skip
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def self.test_order
         :alpha
       end
@@ -199,23 +184,24 @@ RuntimeError: unhandled exception
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run %w[--seed 42 --verbose]
+    @tu = tc
+    run_tu_with_fresh_reporter %w[--seed 42 --verbose]
 
     expected = "Run options:
 
-# Running tests:
+# Running:
 
 ATestCase#test_skip = 0.00 s = S
 ATestCase#test_something = 0.00 s = .
 
 
-Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
+Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
   1) Skipped:
-test_skip(ATestCase) [FILE:LINE]:
+ATestCase#test_skip [FILE:LINE]:
 not yet
 
-2 tests, 1 assertions, 0 failures, 0 errors, 1 skips
+2 runs, 1 assertions, 0 failures, 0 errors, 1 skips
 "
     util_assert_report expected
   end
@@ -223,13 +209,13 @@ not yet
   def util_assert_report expected = nil
     expected ||= "Run options:
 
-# Running tests:
+# Running:
 
 .
 
-Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
+Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
-1 tests, 1 assertions, 0 failures, 0 errors, 0 skips
+1 runs, 1 assertions, 0 failures, 0 errors, 0 skips
 "
     output = @output.string.gsub(/\d+\.\d+/, "0.00")
     output.sub!(/Loaded suite .*/, 'Loaded suite blah')
@@ -239,7 +225,7 @@ Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
   end
 
   def test_run_failing_filtered
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def self.test_order
         :alpha
       end
@@ -255,13 +241,14 @@ Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run(%w(-n /something/))
+    @tu = tc
+    run_tu_with_fresh_reporter %w(-n /something/)
 
     util_assert_report
   end
 
   def test_run_passing
-    tc = Class.new MiniTest::Unit::TestCase do
+    tc = Class.new Test::Unit::TestCase do
       def test_something
         assert true
       end
@@ -269,13 +256,14 @@ Finished tests in 0.00s, 0.00 tests/s, 0.00 assertions/s.
 
     Object.const_set(:ATestCase, tc)
 
-    @tu.run
+    @tu = tc
+    run_tu_with_fresh_reporter
 
     util_assert_report
   end
 end
 
-class TestMiniTestTestCase < MiniTest::Unit::TestCase
+class TestMiniTestTestCase < Minitest::Test
   def setup
     MiniTest::Unit::TestCase.reset
 
@@ -285,26 +273,17 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def teardown
-    assert_equal(@assertion_count, @tc._assertions,
-                 "expected #{@assertion_count} assertions to be fired during the test, not #{@tc._assertions}") if @tc._assertions
+    # assert_equal(@assertion_count, @tc._assertions,
+    #              "expected #{@assertion_count} assertions to be fired during the test, not #{@tc._assertions}") if @tc._assertions
     Object.send :remove_const, :ATestCase if defined? ATestCase
   end
 
   def test_class_inherited
     @assertion_count = 0
 
-    testcase = Class.new MiniTest::Unit::TestCase
+    testcase = Class.new Test::Unit::TestCase
 
-    assert_equal [testcase], MiniTest::Unit::TestCase.test_suites
-  end
-
-  def test_class_test_suites
-    @assertion_count = 0
-
-    testcase = Class.new MiniTest::Unit::TestCase
-
-    assert_equal 1, MiniTest::Unit::TestCase.test_suites.size
-    assert_equal [testcase], MiniTest::Unit::TestCase.test_suites
+    assert_includes Minitest::Runnable.runnables, testcase
   end
 
   def test_class_asserts_match_refutes
@@ -372,7 +351,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_in_delta_triggered
-    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to be < 1.0e-06.' do
+    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to be <= 1.0e-06.' do
       @tc.assert_in_delta 0.0, 1.0 / 1000, 0.000001
     end
   end
@@ -392,7 +371,7 @@ class TestMiniTestTestCase < MiniTest::Unit::TestCase
   end
 
   def test_assert_in_epsilon_triggered
-    util_assert_triggered 'Expected |10000 - 9990| (10) to be < 9.99.' do
+    util_assert_triggered 'Expected |10000 - 9990| (10) to be <= 9.99.' do
       @tc.assert_in_epsilon 10000, 9990
     end
   end
@@ -494,13 +473,13 @@ FILE:LINE:in `test_assert_raises_triggered_different'
   end
 
   def test_assert_raises_triggered_none
-    e = assert_raises MiniTest::Assertion do
-      @tc.assert_raises MiniTest::Assertion do
+    e = assert_raises Minitest::Assertion do
+      @tc.assert_raises Minitest::Assertion do
         # do nothing
       end
     end
 
-    expected = "MiniTest::Assertion expected but nothing was raised."
+    expected = "Minitest::Assertion expected but nothing was raised."
 
     assert_equal expected, e.message
   end
@@ -607,10 +586,10 @@ FILE:LINE:in `test_assert_raises_triggered_different'
     @tc.pass
   end
 
-  def test_test_methods_sorted
+  def test_runnable_methods_sorted
     @assertion_count = 0
 
-    sample_test_case = Class.new MiniTest::Unit::TestCase do
+    sample_test_case = Class.new Test::Unit::TestCase do
       def self.test_order; :sorted; end
       def test_test3; assert "does not matter" end
       def test_test2; assert "does not matter" end
@@ -618,13 +597,13 @@ FILE:LINE:in `test_assert_raises_triggered_different'
     end
 
     expected = %w(test_test1 test_test2 test_test3)
-    assert_equal expected, sample_test_case.test_methods
+    assert_equal expected, sample_test_case.runnable_methods
   end
 
-  def test_test_methods_random
+  def test_runnable_methods_random
     @assertion_count = 0
 
-    sample_test_case = Class.new MiniTest::Unit::TestCase do
+    sample_test_case = Class.new Test::Unit::TestCase do
       def self.test_order; :random end
       def test_test1; assert "does not matter" end
       def test_test2; assert "does not matter" end
@@ -637,7 +616,7 @@ FILE:LINE:in `test_assert_raises_triggered_different'
     expected = expected.sort_by { rand(max) }
 
     srand 42
-    result = sample_test_case.test_methods
+    result = sample_test_case.runnable_methods
 
     assert_equal expected, result
   end
@@ -677,17 +656,17 @@ FILE:LINE:in `test_assert_raises_triggered_different'
   end
 
   def test_refute_in_delta_triggered
-    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to not be < 0.1.' do
+    util_assert_triggered 'Expected |0.0 - 0.001| (0.001) to not be <= 0.1.' do
       @tc.refute_in_delta 0.0, 1.0 / 1000, 0.1
     end
   end
 
   def test_refute_in_epsilon
-    @tc.refute_in_epsilon 10000, 9990
+    @tc.refute_in_epsilon 10000, 9989
   end
 
   def test_refute_in_epsilon_triggered
-    util_assert_triggered 'Expected |10000 - 9991| (9) to not be < 10.0.' do
+    util_assert_triggered 'Expected |10000 - 9991| (9) to not be <= 10.0.' do
       @tc.refute_in_epsilon 10000, 9991
       fail
     end
