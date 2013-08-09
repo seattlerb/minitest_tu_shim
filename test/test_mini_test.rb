@@ -93,7 +93,7 @@ Failed assertion, no message given.
 
 2 runs, 2 assertions, 1 failures, 0 errors, 0 skips
 "
-    util_assert_report expected
+    assert_report expected
   end
 
   def test_run_error
@@ -131,7 +131,7 @@ RuntimeError: unhandled exception
 
 2 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 "
-    util_assert_report expected
+    assert_report expected
   end
 
   def test_run_error_teardown
@@ -165,7 +165,7 @@ RuntimeError: unhandled exception
 
 1 runs, 1 assertions, 0 failures, 1 errors, 0 skips
 "
-    util_assert_report expected
+    assert_report expected
   end
 
   def test_run_skip
@@ -204,10 +204,10 @@ not yet
 
 2 runs, 1 assertions, 0 failures, 0 errors, 1 skips
 "
-    util_assert_report expected
+    assert_report expected
   end
 
-  def util_assert_report expected = nil
+  def assert_report expected = nil
     expected ||= "Run options:
 
 # Running:
@@ -245,7 +245,7 @@ Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
     @tu = tc
     run_tu_with_fresh_reporter %w(-n /something/)
 
-    util_assert_report
+    assert_report
   end
 
   def test_run_passing
@@ -260,7 +260,7 @@ Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
     @tu = tc
     run_tu_with_fresh_reporter
 
-    util_assert_report
+    assert_report
   end
 end
 
