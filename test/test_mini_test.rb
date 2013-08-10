@@ -276,8 +276,8 @@ class TestMiniTestTestCase < Minitest::Test
   end
 
   def teardown
-    # assert_equal(@assertion_count, @tc._assertions,
-    #              "expected #{@assertion_count} assertions to be fired during the test, not #{@tc._assertions}") if @tc._assertions
+    assert_equal(@assertion_count, @tc.assertions,
+                 "expected #{@assertion_count} assertions to be fired during the test, not #{@tc.assertions}") if @tc.assertions
     Object.send :remove_const, :ATestCase if defined? ATestCase
   end
 
