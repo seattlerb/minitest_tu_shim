@@ -46,7 +46,10 @@ class TestMiniTest < Minitest::Test
     options = Minitest.process_args flags
 
     @output = StringIO.new("")
-    self.reporter = Minitest::Reporter.new @output, options
+    self.reporter = Minitest::CompositeReporter.new
+    reporter << Minitest::SummaryReporter.new(@output, options)
+    reporter << Minitest::ProgressReporter.new(@output, options)
+
     reporter.start
 
     @tus ||= [@tu]
@@ -194,7 +197,6 @@ RuntimeError: unhandled exception
 
 ATestCase#test_skip = 0.00 s = S
 ATestCase#test_something = 0.00 s = .
-
 
 Finished in 0.00s, 0.00 runs/s, 0.00 assertions/s.
 
