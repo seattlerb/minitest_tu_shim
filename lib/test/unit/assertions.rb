@@ -34,6 +34,15 @@ module Test::Unit
     tu_deprecate :assert_not_nil,        :refute_nil            # 2009-06-01
     tu_deprecate :assert_not_same,       :refute_same           # 2009-06-01
 
+    ##
+    # Fails unless the block returns a true value.
+
+    def assert_block msg = nil
+      warn "NOTE: MiniTest::Unit::TestCase#assert_block is deprecated, use assert. It will be removed on 2013-01-01. Called from #{caller.first}"
+      msg = message(msg) { "Expected block to return true value" }
+      assert yield, msg
+    end
+
     def assert_nothing_raised _ = :ignored                      # 2009-06-01
       self.class.tu_deprecation_warning :assert_nothing_raised
       self._assertions += 1
