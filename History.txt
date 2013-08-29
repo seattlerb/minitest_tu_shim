@@ -1,3 +1,15 @@
+=== 1.3.3 / 2013-08-29
+
+* 1 minor enhancement:
+
+  * Added assert_block because rails 3 and other old libs still use it.
+
+* 3 bug fixes:
+
+  * Cleaned up 1.9.3 warnings.
+  * Minor fixes to tests to get them happy for minitest changes.
+  * Updated tests to work with new minitest output and methods
+
 === 1.3.2 / 2010-03-27
 
 * 2 bug fixes:
