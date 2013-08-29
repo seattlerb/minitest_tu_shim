@@ -10,7 +10,8 @@ module Test::Unit # was ::Mini::Test, but rails' horrid code forced my hand
 
   AssertionFailedError = ::MiniTest::Assertion
 
-  class TestCase < ::Minitest::Test
+  class TestCase < ::MiniTest::Unit::TestCase
+
     VERSION = '1.3.2'
 
     tu_deprecate :method_name, :name # 2009-06-01
