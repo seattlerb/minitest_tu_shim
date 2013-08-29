@@ -299,7 +299,7 @@ class TestMiniTestTestCase < Minitest::Test
                  assert_not_nil assert_not_same assert_nothing_thrown
                  assert_output assert_raise assert_nothing_raised
                  assert_raises assert_throws assert_send
-                 assert_silent)
+                 assert_silent assert_block)
     asserts = methods.grep(/^assert/).sort - ignores
     refutes = methods.grep(/^refute/).sort - ignores
 
